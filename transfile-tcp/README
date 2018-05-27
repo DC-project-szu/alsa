@@ -1,0 +1,3 @@
+执行make命令得到两个可执行文件
+在一个终端执行服务端（./trans_ser portname filename）
+在另一个终端执行客户端（./trans_cli ipaddr portname filename）
