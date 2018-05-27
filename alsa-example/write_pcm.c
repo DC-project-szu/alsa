@@ -1,14 +1,3 @@
-/*
- * list4.c
- * this example reads from the default PCM device and
- * writes to standard output(STDOUT) for 5 seconds of data
-
- mobile play music to PC record input, then do
- ./list4 > sound.raw
- PC playback output, do
- ./list3 < sound.raw
- */
-
 /* use the newer ALSA API */
 #define ALSA_PCM_NEW_HW_PARAMS_API
 
