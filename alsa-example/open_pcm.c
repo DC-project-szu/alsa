@@ -1,11 +1,3 @@
-/*
- * list3.c
- * read from input(STDIN) and writes to the default PCM device
- * for 5 seconds of data
-
- ./list3 < /dev/urandom
- */
-
 /* use the newer ALSA_API */
 #define ALSA_PCM_NEW_HW_PARAMS_API
 
