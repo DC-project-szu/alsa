@@ -1,0 +1,11 @@
+使用：
+make命令生成两个执行文件
+
+录音：
+./write_pcm > test.wav
+
+播放：
+./open_pcm < test.wav
+
+边录音边播放:
+./write_pcm | ./open_pcm
