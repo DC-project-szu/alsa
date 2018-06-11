@@ -13,33 +13,35 @@ static int xrunRecovery(snd_pcm_t *rc, int err);
 snd_pcm_t *rhandle, *whandle;
 snd_pcm_hw_params_t *rparams, *wparams;
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-	 int rc;
-	 rc=open(argv[1],O_RDONLY);
-   	printf("%s,%s,%s\n",argv[0],argv[1],argv[2]);
-	 void	*OutBuf;
+    int fd;
+    fd=open(argv[1],O_RDONLY);
+    /* printf("%s,%s,%s\n",argv[0],argv[1],argv[2]); */
+    void *OutBuf;
     int frames;
     int i;
-	 ssize_t flag;
+    ssize_t flag;
 
     sound_init();
     OutBuf= alloca(SPEEX_SAMPLES * 2 * 2);
-	 while(1)	 
-	 {
- 		flag=read(rc,OutBuf,SPEEX_SAMPLES * 2 * 2);
-		if(flag<=0)
-	 		break;
- 	   //OutputBuf[RADIO]  		= alloca(SPEEX_SAMPLES * 2);
- 	   //OutputBuf[PHONE] 			= alloca(SPEEX_SAMPLES * 2);
-		frames = sound_write(whandle, OutBuf, SPEEX_SAMPLES) ;
+    while(1)
+    {
+        flag=read(fd,OutBuf,SPEEX_SAMPLES * 2 * 2);
+        if(flag<=0)
+            break;
+        //OutputBuf[RADIO]  		= alloca(SPEEX_SAMPLES * 2);
+        //OutputBuf[PHONE] 			= alloca(SPEEX_SAMPLES * 2);
+        frames = sound_write(whandle, OutBuf, SPEEX_SAMPLES) ;
 
- 	   if (frames < 0) 
-		{
- 	     printf("Failed to write speech buffer.\n");
- 	    }
-	 }	
- 	sound_delete();
+        if (frames < 0)
+        {
+            printf("Failed to write speech buffer.\n");
+        }
+    }
+    sound_delete();
+    close(fd);
+    return 0;
 }
 
 void set_volume()
