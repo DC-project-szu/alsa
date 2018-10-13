@@ -15,29 +15,54 @@ snd_pcm_hw_params_t *rparams, *wparams;
 
 void main(int argc, char* argv[])
 {
-    int rc;
-    rc=open(argv[1],O_RDONLY);
-    printf("%s,%s,%s\n",argv[0],argv[1],argv[2]);
-    void	*OutBuf;
+    int fd;
+    // 打开提示音文件
+    fd = open(argv[1], O_RDONLY);
+    // printf("%s,%s,%s\n", argv[0], argv[1], argv[2]);
+
+    void *Buf;
     int frames;
     int i;
-    ssize_t flag;
+
+    ssize_t ndata;
 
     sound_init();
-    OutBuf= alloca(SPEEX_SAMPLES * 2 * 2);
+
+    // 分配一段空间
+    Buf= alloca(SPEEX_SAMPLES * 2 * 2);
+
+    // 播放提示音
     while(1)
     {
-        flag=read(rc,OutBuf,SPEEX_SAMPLES * 2 * 2);
-        if(flag<=0)
+        // 从提示音文件里读取一段数据到OutBuf
+        ndata = read(fd, Buf, SPEEX_SAMPLES * 2 * 2);
+
+        // 如果数据读完了就跳出循环
+        if(ndata <= 0)
             break;
         //OutputBuf[RADIO]  		= alloca(SPEEX_SAMPLES * 2);
         //OutputBuf[PHONE] 			= alloca(SPEEX_SAMPLES * 2);
-        frames = sound_write(whandle, OutBuf, SPEEX_SAMPLES) ;
+        
+        // 写入声卡，即播放声音
+        frames = sound_write(whandle, Buf, SPEEX_SAMPLES) ;
 
         if (frames < 0)
         {
             printf("Failed to write speech buffer.\n");
         }
+    }
+
+    // TODO:从声卡里面读数据，即录音
+    // 问题：怎么判断什么时候录音结束？ 固定时间(怎么固定)；检测到忙音
+    while(1)
+    {
+
+    }
+
+    // TODO:播放之前的录音
+    while(1)
+    {
+
     }
     sound_delete();
 }
