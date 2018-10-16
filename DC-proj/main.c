@@ -108,7 +108,7 @@ int record(char *filename)
 
     ssize_t ndata;
 
-    int count = 100;
+    int count = 200;
 
     // 分配一段空间
     Buf = alloca(SPEEX_SAMPLES * 2 * 2);
