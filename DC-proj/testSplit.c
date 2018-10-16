@@ -4,7 +4,7 @@
 #include <alloca.h>
 #include <error.h>
 
-#include "DtmfDetector.h"
+// #include "DtmfDetector.h"
 
 
 #define RADIO	0
@@ -205,7 +205,6 @@ int sound_read(	snd_pcm_t * pcm, void * bufs, snd_pcm_uframes_t size )
     int numSamples, readSamples;
     void *bufPtr;
 
-    //为什么要多设置这两个变量？是怕改变指针的值?
     readSamples = size;
     bufPtr = bufs;
 
@@ -349,7 +348,7 @@ int main(int argc, char *argv[])
     int frames;
 
     sound_init();
-    dtmfDetecting_init();
+    // dtmfDetecting_init();
 
     int fd = open(argv[1], O_RDONLY);
     if(fd == -1)
@@ -370,39 +369,39 @@ int main(int argc, char *argv[])
         /* frames = sound_write(whandle, OutBuf, SPEEX_SAMPLES); */
         /* if (frames < 0) */
         /* { */
-            /* printf("Failed to write speech buffer.\n"); */
+        /*     printf("Failed to write speech buffer.\n"); */
         /* } */
 
 
         /* Read samples from the Sound device */
-        /* frames = sound_read(rhandle, InBuf, SPEEX_SAMPLES) ; */
-        /* if (frames < 0) */
-        /* { */
-        /*     printf("Failed to read speech buffer\n"); */
-        /* } */
+        frames = sound_read(rhandle, InBuf, SPEEX_SAMPLES) ;
+        if (frames < 0)
+        {
+            printf("Failed to read speech buffer\n");
+        }
 
         sound_split(InBuf, InputBuf[RADIO], InputBuf[PHONE] , SPEEX_SAMPLES * 2);
 
         /* busy tone detected */
-        /* if (toneDetecting((short*)InputBuf[PHONE]) > 7) */
-        /* int ret = toneDetecting((short*)InputBuf[PHONE]); */
-        int ret = toneDetecting((short*)InputBuf[RADIO]);
-        /* int ret = toneDetecting((short*)OutputBuf[RADIO]); */
-        /* printf("ret = %d\n", ret); */
+        if (toneDetecting((short*)InputBuf[PHONE]) > 7)
+        int ret = toneDetecting((short*)InputBuf[PHONE]);
+        // int ret = toneDetecting((short*)InputBuf[RADIO]);
+        int ret = toneDetecting((short*)OutputBuf[RADIO]);
+        printf("ret = %d\n", ret);
         if (ret > 7)
         {
-            /* if (toneDetecting((short*)InBuf) > 7){ */
+            if (toneDetecting((short*)InBuf) > 7){ */
             printf("Busy tone detected.\n");
         }
 
 
         /* password = dtmfDetecting((short*)InputBuf[RADIO]); */
-        password = dtmfDetecting((short*)InBuf);
-        if (password != NULL)
-        {
-            printf("password = %s\n", password);
-        }
-        dtmfDetecting_init();
+        // password = dtmfDetecting((short*)InBuf);
+        // if (password != NULL)
+        // {
+        //     printf("password = %s\n", password);
+        // }
+        // dtmfDetecting_init();
     }
     sound_delete();
     close(fd);
