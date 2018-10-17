@@ -367,8 +367,8 @@ int main(int argc, char *argv[])
 
 
         sound_combine(OutBuf, OutputBuf[RADIO], OutputBuf[PHONE], SPEEX_SAMPLES * 2);
-        frames = sound_write(whandle, OutBuf, SPEEX_SAMPLES);
-        /* frames = sound_write(whandle, OutputBuf[RADIO], SPEEX_SAMPLES); */
+        /* frames = sound_write(whandle, OutBuf, SPEEX_SAMPLES); */
+        frames = sound_write(whandle, OutputBuf[RADIO], SPEEX_SAMPLES);
         if (frames < 0)
         {
             printf("Failed to write speech buffer.\n");
@@ -393,8 +393,8 @@ int main(int argc, char *argv[])
         /* printf("ret = %d\n", ret); */
         /* if (ret > 7) */
         /* { */
-        /*     /1* if (toneDetecting((short*)InBuf) > 7){ *1/ */
-        /*     printf("Busy tone detected.\n"); */
+            /* if (toneDetecting((short*)InBuf) > 7){ */
+            /* printf("Busy tone detected.\n"); */
         /* } */
 
     }

@@ -18,6 +18,7 @@ int sound_write(snd_pcm_t *pcm, void *bufs, snd_pcm_uframes_t size);
 int sound_read(	snd_pcm_t *pcm, void *bufs, snd_pcm_uframes_t size);
 static int xrunRecovery(snd_pcm_t *rc, int err);
 
+int toneDetecting(short input_array[]);
 
 snd_pcm_t *rhandle, *whandle;
 snd_pcm_hw_params_t *rparams, *wparams;
@@ -28,13 +29,13 @@ int main(int argc, char* argv[])
     sound_init();
 
     // 播放提示音
-    ret = play_record(TONE1);
-    if (ret < 0)
-    {
-        printf("play_record() error\n");
-        exit(-1);
-    }
-    sound_delete();
+    // ret = play_record(TONE1);
+    // if (ret < 0)
+    // {
+    //     printf("play_record() error\n");
+    //     exit(-1);
+    // }
+    // sound_delete();
 
     // 录音
     sound_init();
@@ -108,18 +109,28 @@ int record(char *filename)
 
     ssize_t ndata;
 
-    int count = 100;
+    int count = 300;
 
     // 分配一段空间
     Buf = alloca(SPEEX_SAMPLES * 2 * 2);
     while(--count > 0)
     {
+        
         frames = sound_read(rhandle, Buf, SPEEX_SAMPLES);
         if (frames < 0)
         {
             printf("Failed to read speech buffer.\n");
             return -1;
         }
+
+        // 检测忙音
+        int ret;
+        if (ret = toneDetecting((short *)Buf) > 7)
+        {
+            printf("Busy tone detected.\n");
+            break;
+        }
+        printf("ret = %d\n", ret);
 
         ndata = write(fd, Buf, SPEEX_SAMPLES * 2 * 2);
         if(ndata < SPEEX_SAMPLES * 2 * 2)

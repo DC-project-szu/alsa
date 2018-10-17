@@ -13,7 +13,7 @@ int toneDetecting(int input_array[]);
 
 int main(int argc, char *argv[])
 {
-    int simple[SPEEX_SAMPLES];
+    int sample[SPEEX_SAMPLES];
     int fd;
     ssize_t numRead;
 
@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
         perror("open error\n");
 
     /* 读取文件 */
-    while((numRead = read(fd, simple, SPEEX_SAMPLES)) > 0)
+    while((numRead = read(fd, sample, SPEEX_SAMPLES)) > 0)
     {
-        int ret = toneDetecting(simple);
+        int ret = toneDetecting(sample);
         printf("ToneChanges = %d\n", ret);
     }
 

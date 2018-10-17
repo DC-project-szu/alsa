@@ -299,6 +299,7 @@ void sound_play_stop()
 /* return the speech/mute mode */
 static int ThresholdCounter[4];
 static int AudioState[4];
+// 判断现在是讲话还是静音模式
 int sound_speech( void* Buf, int channel ) //Buf是音频数据
 {
     int ii;
@@ -308,7 +309,7 @@ int sound_speech( void* Buf, int channel ) //Buf是音频数据
     int len = SPEEX_SAMPLES;
     short *buf = (short *)Buf;
 
-    int threshold = UserConfig.TelephoneCfg.Threshold * 100; //UserConfig应该是某个头文件里的全局变量结构体
+    int threshold = UserConfig.TelephoneCfg.Threshold * 100;
 
     for(ii = 0; ii < len; ii++)
         Volumn += *(buf + ii); //Buf里的值求和
@@ -504,7 +505,7 @@ void * sound_thread( void* args )
 
     sound_init();
 
-    InBuf									= alloca(SPEEX_SAMPLES * 2 * 2); //alloca:在堆栈上分配内存,详见P122
+    InBuf									= alloca(SPEEX_SAMPLES * 2 * 2);
     OutBuf								= alloca(SPEEX_SAMPLES * 2 * 2);
     InputBuf[RADIO] 	    = alloca(SPEEX_SAMPLES * 2);
     InputBuf[PHONE] 	  	= alloca(SPEEX_SAMPLES * 2);
@@ -518,10 +519,11 @@ void * sound_thread( void* args )
     memset(&ThresholdCounter, 0, sizeof(ThresholdCounter));
     memset(&AudioState, 0, sizeof(AudioState));
 
-    while(!(ShutDown&0x01)) //ShutDown应该在某个头文件？
+    while(!(ShutDown&0x01)) 
     {
         /* Read samples from the Sound device */
-        frames = sound_read(rhandle, InBuf, SPEEX_SAMPLES) ; //？？
+        // 从声卡里读取数据
+        frames = sound_read(rhandle, InBuf, SPEEX_SAMPLES) ;
         if (frames < 0)
         {
             printf("Failed to read speech buffer\n");
@@ -529,9 +531,11 @@ void * sound_thread( void* args )
             break;
         }
 
+        // 将从声卡读取的数据分为两个声道
         sound_split(InBuf, InputBuf[RADIO], InputBuf[PHONE] , SPEEX_SAMPLES * 2);
 
         /* busy tone detected */
+        // 首先检查手机端传来的声音是否是忙音
         if (toneDetecting((short*)InputBuf[PHONE]) > 7){
             printf("Busy tone detected.\n");
             clear_line();
@@ -541,7 +545,7 @@ void * sound_thread( void* args )
         /* status timeout */
         if (time_status)
             if ( time_after(time_sec(), time_status+60)){
-                DP(("Status blocked for 60 seconds.\n")); //DP??
+                DP(("Status blocked for 60 seconds.\n")); //display??
                 clear_line();
                 time_status = 0;
             }
@@ -550,10 +554,13 @@ void * sound_thread( void* args )
             continue;
 
         switch(status){
+            // 空闲状态
             case LINE_IDLE:
                 /* Check for incoming call */
+                // 检查关联电话的gpio的电平，为低电平就是有电话打进来了
                 if (digitalRead(GPIO_RING) == 0){
                     printf("Entering LINE_INCOMING...\n");
+
                     if (UserConfig.TelephoneCfg.PasswordEnabled){
                         status = LINE_INCOMING;
                     }
@@ -565,9 +572,11 @@ void * sound_thread( void* args )
                     /* record the time */
                     time_status = time(NULL);
                     /* pick up the phone */
+                    // 接电话
                     PICKUP_PHONE();
                     retry = 0;
                     /* play greeting sound */
+                    // 播放欢迎音频
                     sound_play_wave("file1.wav");
                     /* restart dtmf-detect */
                     dtmfDetecting_init();
