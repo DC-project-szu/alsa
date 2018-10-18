@@ -110,7 +110,7 @@
 
 
 ### 状态机
-
+`LINE_INCOMING`和`LINE_RETRY`处理工作是一样的。
 ```mermaid
 graph TD;
 LINE_IDLE-->LINE_INCOMING;
