@@ -125,3 +125,10 @@ LINE_INCOMING-->LINE_TALKING;
 LINE_INCOMING-->LINE_ENDING;
 LINE_INCOMING-->LINE_INCOMING;
 ```
+
+
+## 问题
+1. PTT是对讲机才有？对讲机是否按下PTT后就有以下现象：手机端的人讲的话对讲机听不到，但是能够听到对讲机端的人讲话——按下PTT后，自动播放一段录音提示手机端。
+2. sound.c 568行 582
+3. 车台的声音只是从一个声道传入吗
+4. 为什么要双声道分开？
