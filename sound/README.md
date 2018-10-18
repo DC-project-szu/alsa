@@ -33,7 +33,7 @@
     1. `sound_speech(InputBuf[RADIO], 0)`为1，说明为speech模式
         + 读取、检查密码，成功后就接电话，开启PTT，进入`LINE_OUTGOING`
 
-###  1.LINE_INCOMING
+####  1.LINE_INCOMING
 1. 读取密码
 2. `password != NULL`
     1. 检查成功之后，如果`UserConfig.TelephoneCfg.Mode == TELEPHONE_REPEATER`为真就关闭PTT，
@@ -48,7 +48,7 @@
         + ...
 
 
-### 2.LINE_OUTGOING
+#### 2.LINE_OUTGOING
 1. `(UserConfig.TelephoneCfg.Mode == TELEPHONE_RADIO) ||
     (UserConfig.TelephoneCfg.Mode == TELEPHONE_NOCOR)`
     1. `time_after(time(NULL), audio_start + 3)`，即播放手机声音三秒了
@@ -60,13 +60,13 @@
     2. `send_audio(InputBuf[PHONE], 1024, 0, 0);`，可能是这个网络状态下直接传数据
 
 
-### 3.LINE_RETRY
+#### 3.LINE_RETRY
 和`LINE_INCOMING`一样
 
-### 4.LINE_ENDING
+#### 4.LINE_ENDING
 播放结束音频给手机，然后挂电话
 
-### 5.LINE_TALKING
+#### 5.LINE_TALKING
 1. `UserConfig.TelephoneCfg.Mode == TELEPHONE_RADIO`
     1. `RADIO_RX()`为1
         1. `audio_telephone`
@@ -92,7 +92,7 @@
         + `memset( OutputBuf[PHONE], 0, SPEEX_SAMPLES * 2);`，清空手机output的数据
 
 
-### 6.LINE_DAILING
+#### 6.LINE_DAILING
 1. `UserConfig.TelephoneCfg.Mode == TELEPHONE_RADIO`
     1. `RADIO_RX()`
         + 进入`LINE_TALKING`
@@ -106,6 +106,7 @@
     1. `sound_speech(InputBuf[RADIO], 0)`
         + 进入`LINE_TALKING`
     2. `memcpy( OutputBuf[PHONE], InputBuf[RADIO], SPEEX_SAMPLES * 2 );`，从车台input拷贝数据到手机output
+<<<<<<< HEAD
 
 
 ### 状态机
@@ -124,3 +125,5 @@ LINE_INCOMING-->LINE_TALKING;
 LINE_INCOMING-->LINE_ENDING;
 LINE_INCOMING-->LINE_INCOMING;
 ```
+=======
+>>>>>>> 9a6101c8020453d88ac6d9e9b1093cebdf70249c
