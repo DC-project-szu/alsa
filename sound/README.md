@@ -106,3 +106,21 @@
     1. `sound_speech(InputBuf[RADIO], 0)`
         + 进入`LINE_TALKING`
     2. `memcpy( OutputBuf[PHONE], InputBuf[RADIO], SPEEX_SAMPLES * 2 );`，从车台input拷贝数据到手机output
+
+
+### 状态机
+
+```mermaid
+graph TD;
+LINE_IDLE-->LINE_INCOMING;
+LINE_IDLE-->LINE_TALKING;
+LINE_IDLE-->LINE_OUTGOING;
+
+LINE_OUTGOING-->LINE_DAILING;
+
+LINE_DAILING-->LINE_TALKING;
+
+LINE_INCOMING-->LINE_TALKING;
+LINE_INCOMING-->LINE_ENDING;
+LINE_INCOMING-->LINE_INCOMING;
+```
