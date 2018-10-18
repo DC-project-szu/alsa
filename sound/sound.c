@@ -565,7 +565,7 @@ void * sound_thread( void* args )
                         status = LINE_INCOMING;
                     }
                     else{
-                        if (UserConfig.TelephoneCfg.Mode == TELEPHONE_REPEATER)
+                        if (UserConfig.TelephoneCfg.Mode == TELEPHONE_REPEATER)// 什么模式？
                             ENABLE_PTT();
                         status = LINE_TALKING;
                     }
@@ -579,7 +579,7 @@ void * sound_thread( void* args )
                     // 播放欢迎音频
                     sound_play_wave("file1.wav");
                     /* restart dtmf-detect */
-                    dtmfDetecting_init();
+                    dtmfDetecting_init();// 有什么用？
                 }
 
                 /* radio with COR */
