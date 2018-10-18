@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
 
         sound_combine(OutBuf, OutputBuf[RADIO], OutputBuf[PHONE], SPEEX_SAMPLES * 2);
         /* frames = sound_write(whandle, OutBuf, SPEEX_SAMPLES); */
-        frames = sound_write(whandle, OutputBuf[RADIO], SPEEX_SAMPLES);
+        frames = sound_write(whandle, OutBuf, SPEEX_SAMPLES);
         if (frames < 0)
         {
             printf("Failed to write speech buffer.\n");
