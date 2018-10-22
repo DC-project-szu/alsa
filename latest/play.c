@@ -1,4 +1,4 @@
-/*capture*/
+/*play*/
 
 #define ALSA_PCM_NEW_HW_PARAMS_API
 #include <alsa/asoundlib.h>
@@ -96,14 +96,20 @@ int main()
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
 	}
-/*-----------------------------录音-------------------------------*/
+/*----------------------------播放-------------------------------*/
 
     while(1)
     {
-        rc=snd_pcm_readi(handle,buffer,frames);
+        rc=read(0,buffer,frames);
+        if(rc<0)
+        {
+            printf("wrong reading");
+            return(-1);
+        }
+        rc=snd_pcm_writei(handle,buffer,frames);
         if (rc == -EPIPE) {
-            /* EPIPE means overrun */ //Question:这里不是underrun吗？文档里面好像没有overrun
-            fprintf(stderr, "overrun occured\n");
+            /* EPIPE means underrun */
+            fprintf(stderr, "underrun occured\n");
             snd_pcm_prepare(handle);
         } 
         else if (rc < 0) {
@@ -111,12 +117,6 @@ int main()
         } 
         else if (rc != (int)frames) {
             fprintf(stderr, "short read, read %d frames\n", rc);
-        }
-        rc=write(1,buffer,size);
-        if(rc!=size)
-        {
-            printf("wrong reading");
-            return(-1);
         }
         //这里需要判断什么时候数据读取完了吗?
     }

@@ -98,7 +98,27 @@ class IOCtrl(LED, TEL):
         self.led.ResetLed()
         self.tel.ResetTel()
 
+if __name__ == '__main__':
+    iopy = IOCtrl()
+    iopy.Reset()
+    print(u'Listening……')
+    if iopy.tel.listen():
+        print(u'There bell ring! Led run!')
+        iopy.tel.hook(True)
+        iopy.led.flow(t=5)
+        for i in range(4):
+        	os.system('./pcm_play') # 这里读取的for循环怎么 确定？
+        iopy.led.led(1, 'on') # 亮灯后进入录音
+        os.system('./capture > capture.wav')#录音
+        os.system('./play < capture.wav')#播放
+        iopy.tel.hook(False)
+    # 挂机后播放录音
+    '''
+    播放录音
+    '''
+    # 程序结束
 
+'''
 if __name__ == '__main__':
     iopy = IOCtrl()
     iopy.Reset()
@@ -126,4 +146,4 @@ if __name__ == '__main__':
     播放录音
     '''
     # 程序结束
-
+'''
