@@ -33,13 +33,13 @@ typedef struct {
 	u32     FmtSize;
 	u16   	wFormatTag;
 	u16   	nChannels;
-	u32 	nSamplesPerSec;  /*²ÉÑùÆµÂÊ*/
-	u32 	nAvgBytesPerSec; /*Ã¿ÃëËùĞè×Ö½ÚÊı*/
-	u16		nBlockAlign;     /*Êı¾İ¿é¶ÔÆëµ¥Î»,Ã¿¸ö²ÉÑùĞèÒªµÄ×Ö½ÚÊı*/
-	u16		wBitsPerSample;  /*Ã¿¸ö²ÉÑùĞèÒªµÄbitÊı*/
+	u32 	nSamplesPerSec;  /*ï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½*/
+	u32 	nAvgBytesPerSec; /*Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½*/
+	u16		nBlockAlign;     /*ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ï¿½ëµ¥Î»,Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½*/
+	u16		wBitsPerSample;  /*Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½bitï¿½ï¿½*/
 	u8		DataID[4];
 	u32 	nDataBytes;
-} WAVE_HEADER;
+} WAVE_HEADER; //å­˜å‚¨wavæ–‡ä»¶çš„å„ç§å‚æ•°
 
 
 WAVE_HEADER g_wave_header;
@@ -52,7 +52,7 @@ FILE * open_and_print_file_params(char *file_name)
 		return NULL;
 	}
 	memset(&g_wave_header, 0, sizeof(g_wave_header));
-	fread(&g_wave_header, 1, sizeof(g_wave_header), fp);
+	fread(&g_wave_header, 1, sizeof(g_wave_header), fp); //fread(&g_wave_header, sizeof(g_wave_header),1, fp);
 	printf("----- Wav Header -----\n");
 	printf("RiffID:%c%c%c%c\n", g_wave_header.RiffID[0], g_wave_header.RiffID[1], g_wave_header.RiffID[2], g_wave_header.RiffID[3]);
 	printf("RiffSize:%d bits\n", g_wave_header.RiffSize);
@@ -89,7 +89,7 @@ int set_hardware_params(void)
 		printf("Unable to open playback device : %s\n", snd_strerror(rc));
 		return ERROR;
 	}
-	/* ·ÖÅäÒ»¸öÓ²¼ş²ÎÊı¶ÔÏó²¢Ìî³äÄ¬ÈÏÖµ */
+	/* ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ó²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½Öµ */
 	snd_pcm_hw_params_alloca(&gp_params);
 	rc = snd_pcm_hw_params_any(gp_handle, gp_params);
 	if (rc < 0)
@@ -97,14 +97,14 @@ int set_hardware_params(void)
 		printf("Unable to fill it with default value : %s\n", snd_strerror(rc));
 		goto err1;
 	}
-	/* ÉèÖÃ½»´íÄ£Ê½ */
+	/* ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½Ä£Ê½ */
 	rc = snd_pcm_hw_params_set_access(gp_handle, gp_params, SND_PCM_ACCESS_RW_INTERLEAVED);
 	if (rc < 0)
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		goto err1;
 	}
-	/* ÉèÖÃ¸ñÊ½£¬¸ù¾İwavÎÄ¼şÍ·ÖĞ°üº¬µÄĞÅÏ¢ */
+	/* ï¿½ï¿½ï¿½Ã¸ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½wavï¿½Ä¼ï¿½Í·ï¿½Ğ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ */
 	snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;  // teacher's code use, singned 16 bits Little Endian 
 	rc = snd_pcm_hw_params_set_format(gp_handle, gp_params, format);
 	if (rc < 0)
@@ -112,14 +112,14 @@ int set_hardware_params(void)
 		printf("Unable to set formatrc : %s\n", snd_strerror(rc));
 		goto err1;
 	}
-	/* ÉèÖÃÉùµÀÊı */
+	/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	rc = snd_pcm_hw_params_set_channels(gp_handle, gp_params, g_wave_header.nChannels);
 	if (rc < 0)
 	{
 		printf("Unable to set channels : %s\n", snd_strerror(rc));
 		goto err1;
 	}
-	/* ÉèÖÃ²ÉÑùÂÊ */
+	/* ï¿½ï¿½ï¿½Ã²ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	u32 dir, rate = g_wave_header.nSamplesPerSec;
 	rc = snd_pcm_hw_params_set_rate_near(gp_handle, gp_params, &rate, 0);
 	if (rc < 0)
@@ -127,7 +127,7 @@ int set_hardware_params(void)
 		printf("Unable to set sample rate : %s\n", snd_strerror(rc));
 		goto err1;
 	}
-	/* ½«²ÎÊıĞ´½øÇı¶¯Éè±¸ */
+	/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ */
 	rc = snd_pcm_hw_params(gp_handle, gp_params);
 	if (rc < 0)
 	{
@@ -135,7 +135,7 @@ int set_hardware_params(void)
 		goto err1;
 	}
 	else	printf("[ok] Set parameters successfully.\n");
-	/* »ñÈ¡Ã¿¸öÖÜÆÚĞèÒªµÄ´óĞ¡ */ 
+	/* ï¿½ï¿½È¡Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½Ä´ï¿½Ğ¡ */ 
 	// printf("%d\n", g_frames); 
 	rc = snd_pcm_hw_params_get_period_size(gp_params, &g_frames, 0);
 	// printf("%d\n", g_frames);
@@ -144,7 +144,7 @@ int set_hardware_params(void)
 		printf("Unable to set period size : %s\n", snd_strerror(rc));
 		goto err1;
 	}
-	/* ·ÖÅä¿Õ¼ä */ 
+	/* ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ */ 
 	g_bufsize = g_frames * 4;
 	gp_buffer = (u8 *)malloc(g_bufsize);
 	if (gp_buffer == NULL)
@@ -194,4 +194,43 @@ int main(int argc, char *argv[])
 	fclose(fp);
 	return 0;
 }
+
+//  å®Œæˆä¸€ä¸ªwavæ–‡ä»¶çš„è¯»å–ï¼Œå†™å…¥PCMè®¾å¤‡ï¼ˆå…ˆå®šä¹‰å¯¹è¦æ‰“å¼€çš„PCMè®¾å¤‡è¿›è¡Œåˆå§‹åŒ–ï¼Œå†åˆ†é…ä¸€ä¸ªç©ºé—´æ¥è¯»å–æ–‡ä»¶ä¸­çš„æ•°æ®ï¼Œç„¶åå†æŠŠç©ºé—´ä¸­çš„æ•°æ®å†™å…¥PCMï¼‰
+
+/* ---------------------------------å®Œæˆ=å½•éŸ³----------------------------------------*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
