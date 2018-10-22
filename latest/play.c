@@ -18,7 +18,7 @@ int main()
 
 /*------------------------------初始化PCM设备---------------------------------*/
     // 打开PCM设备
-    rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, 0);
+    rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK , 0);
     if(rc<0)
     {
         printf("can not open a PCM device,can not receive a handle of PCM device");
