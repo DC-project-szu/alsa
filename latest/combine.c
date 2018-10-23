@@ -155,13 +155,16 @@ int snd_pcm_init(char fc)
     buffer = (char *)malloc(size); //buffer ,make sure that it is big enough to hold one period
 
     //推测，这里是为了根据音频数据得出peiriod的个数
-    /*rc = snd_pcm_hw_params_get_period_time(params, &val, &dir); //Question
-    if (rc < 0)
+    if(fc=='p')
     {
-        printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
-        error_deal(handle);
-        return -1;
-    }*/
+        rc = snd_pcm_hw_params_get_period_time(params, &val, &dir); //Question
+        if (rc < 0)
+        {
+            printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
+            error_deal(handle);
+            return -1;
+        }
+    }
     return 0;
 }
 
