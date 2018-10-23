@@ -7,6 +7,7 @@ int error_deal(snd_pcm_t *handle);//错误处理
 int snd_pcm_init(char fc);//写一个初始化设备的函数，专门初始化
 int capture(char *argv);//录音函数
 int play(char *argv);//播放函数
+static int xrunRecovery(snd_pcm_t *rc, int err);
 
 int rc;
 snd_pcm_t *handle;           //PCM句柄
@@ -179,19 +180,18 @@ int capture(char *argv)
         return -1;
     }
 
+    //打开文件进行录音
+    fp = fopen(argv, "w"); //原本：fp = fopen(*(argv+1),*(argv+2))这里可以用arg[]传参数 w:创建新的wav文件，*(argv+1)为字符串数组中第一个字符串，文件名；
+                           //*(argv+2)则为fopen的mode参数，播放为r，录音为w（Question：后续中，是否要考虑在录音文件中进行数据叠加？）
+    if (fp == NULL)
+    {
+        printf("can not open a file for capturing in the pcm_process\n");
+        return -1;
+    }
     printf("recording...\n");
-    int count = 1000;
+    int count = 10000;
     while (--count > 0)
     {
-        //打开文件进行录音
-        fp = fopen(argv, "w"); //原本：fp = fopen(*(argv+1),*(argv+2))这里可以用arg[]传参数 w:创建新的wav文件，*(argv+1)为字符串数组中第一个字符串，文件名；
-                                  //*(argv+2)则为fopen的mode参数，播放为r，录音为w（Question：后续中，是否要考虑在录音文件中进行数据叠加？）
-        if (fp == NULL)
-        {
-            printf("can not open a file for capturing in the pcm_process\n");
-            return -1;
-        }
-
         rc = snd_pcm_readi(handle, buffer, frames); //从声卡读取数据到内存空间
         if (rc == -EPIPE)
         {
@@ -201,7 +201,10 @@ int capture(char *argv)
         }
         else if (rc < 0)
         {
-            fprintf(stderr, "error from read: %s\n", snd_strerror(rc));
+            if (xrunRecovery(handle, rc) < 0) {
+                printf ("Failed to read from (%s)\n", strerror(rc));
+                return -1;
+            }
         }
         else if (rc != (int)frames)
         {
@@ -228,34 +231,41 @@ int play(char *argv)
         printf("something wrong in sound_card init process\n");
         return -1;
     }
+
+    //打开文件进行播放
+    fp = fopen(argv, "r");
+    if (fp == NULL)
+    {
+        printf("can not open a file for playing in the pcm_process");
+        return -1;
+    }
     printf("playing...\n");
     while (1)
     {
-        //打开文件进行播放
-        fp = fopen(argv, "r");
-        if (fp == NULL)
-        {
-            printf("can not open a file for playing in the pcm_process");
-            return -1;
-        }
-
-        rc = fread(buffer, frames, 1, fp); //将数据写入内存
+        rc = fread(buffer, frames*4, 1, fp); //将数据写入内存
         if (rc == 0)                       //fread函数出错
         {
-            printf("wrong reading of function fwrite");
+            // printf("wrong reading of function fwrite");
             return (-1);
         }
 
         rc = snd_pcm_writei(handle, buffer, frames); //underrun如何处理和检查？
-        if (rc == -EPIPE)
-        {
-            /* EPIPE means overrun */ //Question:这里不是underrun吗？文档里面好像没有overrun
-            fprintf(stderr, "overrun occured\n");
-            snd_pcm_prepare(handle);
-        }
+
+        if (rc == -EAGAIN)
+            continue;
+
+        // if (rc == -EPIPE)
+        // {
+        //     /* EPIPE means overrun */ //Question:这里不是underrun吗？文档里面好像没有overrun
+        //     fprintf(stderr, "underrun occured\n");
+        //     snd_pcm_prepare(handle);
+        // }
         else if (rc < 0)
         {
-            fprintf(stderr, "error from read: %s\n", snd_strerror(rc));
+            if (xrunRecovery(handle,rc) < 0) {
+                printf ("Failed to write to (%s)\n", strerror(rc));
+                return -1;
+            }
         }
         else if (rc != (int)frames)
         {
@@ -264,5 +274,32 @@ int play(char *argv)
 
         //这里需要判断什么时候数据读取完了吗?
     }
+    return 0;
+}
+
+static int xrunRecovery(snd_pcm_t *rc, int err)
+{
+    printf("Recovering from underrun\n");
+
+    if (err == -EPIPE) {
+        if (snd_pcm_prepare(rc) < 0) {
+            printf("Failed to recover from over or underrun on.\n");
+            return -1;
+        }
+    }
+    else if (err == -ESTRPIPE) {
+        while ((err = snd_pcm_resume(rc)) == -EAGAIN) {
+            sleep (1);  /* wait until the suspend flag is released */
+        }
+
+        if (snd_pcm_prepare(rc) < 0) {
+            printf("Failed to recover from over or underrun.\n");
+            return -1;
+        }
+    }
+    else {
+        return -1;
+    }
+
     return 0;
 }
