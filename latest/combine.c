@@ -5,7 +5,7 @@
 
 int error_deal(snd_pcm_t *handle);
 //写一个初始化设备的函数，专门初始化
-int snd_pcm_init();
+int snd_pcm_init(char fc);
 
 int rc;
     snd_pcm_t *handle;//PCM句柄
@@ -15,16 +15,36 @@ int rc;
     int dir;
     int val;
     int size;
-int snd_pcm_init()
+
+int snd_pcm_init(char fc)
 {
 /*------------------------------初始化PCM设备---------------------------------*/
     // 打开PCM设备
-    rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK , 0);
-    if(rc<0)
+    
+    switch(fc)
     {
-        printf("can not open a PCM device,can not receive a handle of PCM device");
-        return -1;
+        case 'p'://播放
+        {
+            rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK , 0);
+            if(rc<0)
+            {
+                printf("can not open a PCM device,can not receive a handle of PCM device");
+                return -1;
+            }
+            break;
+        }
+        case 'c'://录音
+        {
+            rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE , 0);
+            if(rc<0)
+            {
+                printf("can not open a PCM device,can not receive a handle of PCM device");
+                return -1;
+            }
+            break;
+        }
     }
+    
 
     //为设备分配配置空间
     snd_pcm_hw_params_alloca(&params);
@@ -108,22 +128,22 @@ int snd_pcm_init()
     return 0;
 }
 
-int main(int argc, char *argv[][NUM])//*(argv+1)为文件名，*(argv+2)为录音时打开文件的mode，
+//录音函数
+void capture(char *argv[])
 {
     FILE *fp;
-    rc = snd_pcm_init();//声卡初始化
+    rc = snd_pcm_init('c');//声卡初始化
     if(rc==-1)
     {
         printf("something wrong in sound_card init process\n");
         return -1;
     }
 
-/*----------------------------播放-------------------------------*/
     printf("recording...");
     while(1)
     {
         //打开文件进行录音
-        fp = fopen(*(argv+1),"w");//原本：fp = fopen(*(argv+1),*(argv+2))这里可以用arg[]传参数 w:创建新的wav文件，*(argv+1)为字符串数组中第一个字符串，文件名；
+        fp = fopen(argv[1],"w");//原本：fp = fopen(*(argv+1),*(argv+2))这里可以用arg[]传参数 w:创建新的wav文件，*(argv+1)为字符串数组中第一个字符串，文件名；
                                 //*(argv+2)则为fopen的mode参数，播放为r，录音为w（Question：后续中，是否要考虑在录音文件中进行数据叠加？）
         if(fp==NULL)
         {
@@ -155,15 +175,22 @@ int main(int argc, char *argv[][NUM])//*(argv+1)为文件名，*(argv+2)为录�
         }
         //这里需要判断什么时候数据读取完了吗?
     }
-    
-    //录音完后 buffer 是否需要清空？如何清空？
-    //录音完后是否需要对pcm设备进行drain
+}
 
+void play(char *argv[])
+{
+    FILE *fp;
+    rc = snd_pcm_init('p');//声卡初始化
+    if(rc==-1)
+    {
+        printf("something wrong in sound_card init process\n");
+        return -1;
+    }
     printf("playing...");
     while(1)
     {
         //打开文件进行播放
-        fp = fopen(*(argv+1),"r");
+        fp = fopen(argv[1],"r");
         if(fp==NULL)
         {
             printf("can not open a file for playing in the pcm_process");
@@ -195,8 +222,21 @@ int main(int argc, char *argv[][NUM])//*(argv+1)为文件名，*(argv+2)为录�
         
         //这里需要判断什么时候数据读取完了吗?
     }
-        
+}
+
+int main(int argc, char *argv[])//argv[1]为文件名，*(argv+2)为录音时打开文件的mode，
+{
     
+
+/*----------------------------录音-------------------------------*/
+    capture(argv[1]);
+    
+    //录音完后 buffer 是否需要清空？如何清空？
+    //录音完后是否需要对pcm设备进行drain
+
+/*----------------------------播放-------------------------------*/
+    play(argv[1]);
+        
     snd_pcm_drain(handle);
     snd_pcm_close(handle);
     free(buffer);
