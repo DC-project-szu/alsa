@@ -3,9 +3,10 @@
 #define NUM 20 //20个参数为上限
 #include <alsa/asoundlib.h>
 
-int error_deal(snd_pcm_t *handle);
-//写一个初始化设备的函数，专门初始化
-int snd_pcm_init(char fc);
+int error_deal(snd_pcm_t *handle);//错误处理
+int snd_pcm_init(char fc);//写一个初始化设备的函数，专门初始化
+int capture(char *argv);//录音函数
+int play(char *argv);//播放函数
 
 int rc;
 snd_pcm_t *handle;           //PCM句柄
@@ -15,6 +16,43 @@ char *buffer;
 int dir;
 int val;
 int size;
+
+
+int main(int argc, char *argv[]) //argv[1]为文件名，*(argv+2)为录音时打开文件的mode，
+{
+
+    int i;
+    /*----------------------------录音-------------------------------*/
+    i = capture(argv[1]);
+    if(i!=0)
+    {
+        printf("mistake in capture\n");
+        return -1;
+    }
+
+    //录音完后 buffer 是否需要清空？如何清空？
+    //录音完后是否需要对pcm设备进行drain
+
+    /*----------------------------播放-------------------------------*/
+    i= play(argv[1]);
+    if(i!=0)
+    {
+        printf("mistake in playback\n");
+        return -1;
+    }
+
+
+    snd_pcm_drain(handle);
+    snd_pcm_close(handle);
+    free(buffer);
+    return 0;
+}
+
+int error_deal(snd_pcm_t *handle)
+{
+    snd_pcm_close(handle);
+    return -1;
+}
 
 int snd_pcm_init(char fc)
 {
@@ -117,13 +155,13 @@ int snd_pcm_init(char fc)
     buffer = (char *)malloc(size); //buffer ,make sure that it is big enough to hold one period
 
     //推测，这里是为了根据音频数据得出peiriod的个数
-    rc = snd_pcm_hw_params_get_period_time(params, &val, &dir); //Question
+    /*rc = snd_pcm_hw_params_get_period_time(params, &val, &dir); //Question
     if (rc < 0)
     {
         printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
         error_deal(handle);
         return -1;
-    }
+    }*/
     return 0;
 }
 
@@ -167,7 +205,7 @@ int capture(char *argv)
             fprintf(stderr, "short read, read %d frames\n", rc);
         }
 
-        rc = fwrite(buffer, frames, 1, fp); // //将数据写入文件
+        rc = fwrite(buffer, frames*4, 1, fp); // //将数据写入文件
         if (rc == 0)                        //fwrite函数出错
         {
             printf("wrong reading of function fwrite");
@@ -224,28 +262,4 @@ int play(char *argv)
         //这里需要判断什么时候数据读取完了吗?
     }
     return 0;
-}
-
-int main(int argc, char *argv[]) //argv[1]为文件名，*(argv+2)为录音时打开文件的mode，
-{
-
-    /*----------------------------录音-------------------------------*/
-    capture(argv[1]);
-
-    //录音完后 buffer 是否需要清空？如何清空？
-    //录音完后是否需要对pcm设备进行drain
-
-    /*----------------------------播放-------------------------------*/
-    play(argv[1]);
-
-    snd_pcm_drain(handle);
-    snd_pcm_close(handle);
-    free(buffer);
-    return 0;
-}
-
-int error_deal(snd_pcm_t *handle)
-{
-    snd_pcm_close(handle);
-    return -1;
 }
