@@ -1,13 +1,13 @@
-/*capture*/
-
+/* combine capture.c with play.c*/
 #define ALSA_PCM_NEW_HW_PARAMS_API
+#define NUM 20//20个参数为上限
 #include <alsa/asoundlib.h>
 
 int error_deal(snd_pcm_t *handle);
+//写一个初始化设备的函数，专门初始化
+int snd_pcm_init();
 
-int main()
-{
-    int rc;
+int rc;
     snd_pcm_t *handle;//PCM句柄
     snd_pcm_hw_params_t *params;//PCM配置空间
     snd_pcm_uframes_t frames;//设置frame定义
@@ -15,14 +15,15 @@ int main()
     int dir;
     int val;
     int size;
-
+int snd_pcm_init()
+{
 /*------------------------------初始化PCM设备---------------------------------*/
     // 打开PCM设备
-    rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, 0);
+    rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK , 0);
     if(rc<0)
     {
         printf("can not open a PCM device,can not receive a handle of PCM device");
-        return (-1);
+        return -1;
     }
 
     //为设备分配配置空间
@@ -35,6 +36,7 @@ int main()
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
+        return -1;
 	}
     //设置字符在内存中的存放顺序
     rc = snd_pcm_hw_params_set_format(handle, params, SND_PCM_FORMAT_S16_LE);
@@ -42,6 +44,7 @@ int main()
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
+        return -1;
 	}
     //设置声道
     rc = snd_pcm_hw_params_set_channels(handle,params,2);
@@ -49,6 +52,7 @@ int main()
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
+        return -1;
 	}
     
     //设置采样率，一般来说采样率设为44100hz，但是由于不同设备支持的采样率不同，所以还需要PCM设备本身适应，
@@ -59,6 +63,7 @@ int main()
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
+        return -1;
 	}
     printf("这里的采样率是%d",val);
     
@@ -69,6 +74,7 @@ int main()
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
+        return -1;
 	}
     printf("这里的frame是%ld",frames);
 
@@ -78,6 +84,7 @@ int main()
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
+        return -1;
 	}
     //设置frames的大小
     rc = snd_pcm_hw_params_get_period_size(params, &frames, &dir);
@@ -85,6 +92,7 @@ int main()
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
+        return -1;
 	}
     size = frames*4;
     buffer = (char *)malloc(size);//buffer ,make sure that it is big enough to hold one period
@@ -95,31 +103,100 @@ int main()
 	{
 		printf("Uable to Interleaved mode : %s\n", snd_strerror(rc));
 		error_deal(handle);
+        return -1;
 	}
-/*-----------------------------录音-------------------------------*/
+    return 0;
+}
 
+int main(int argc, char *argv[][NUM])//*(argv+1)为文件名，*(argv+2)为录音时打开文件的mode，
+{
+    FILE *fp;
+    rc = snd_pcm_init();//声卡初始化
+    if(rc==-1)
+    {
+        printf("something wrong in sound_card init process\n");
+        return -1;
+    }
+
+/*----------------------------播放-------------------------------*/
+    printf("recording...");
     while(1)
     {
-        rc=snd_pcm_readi(handle,buffer,frames);
-        if (rc == -EPIPE) {
+        //打开文件进行录音
+        fp = fopen(*(argv+1),"w");//原本：fp = fopen(*(argv+1),*(argv+2))这里可以用arg[]传参数 w:创建新的wav文件，*(argv+1)为字符串数组中第一个字符串，文件名；
+                                //*(argv+2)则为fopen的mode参数，播放为r，录音为w（Question：后续中，是否要考虑在录音文件中进行数据叠加？）
+        if(fp==NULL)
+        {
+            printf("can not open a file for capturing in the pcm_process");
+            return -1;
+        }
+
+        rc=snd_pcm_readi(handle,buffer,frames);//从声卡读取数据到内存空间
+        if (rc == -EPIPE) 
+        {
             /* EPIPE means overrun */ //Question:这里不是underrun吗？文档里面好像没有overrun
             fprintf(stderr, "overrun occured\n");
             snd_pcm_prepare(handle);
         } 
-        else if (rc < 0) {
+        else if (rc < 0) 
+        {
             fprintf(stderr, "error from read: %s\n", snd_strerror(rc));
         } 
-        else if (rc != (int)frames) {
+        else if (rc != (int)frames) 
+        {
             fprintf(stderr, "short read, read %d frames\n", rc);
         }
-        rc=write(1,buffer,frames);//Question：这里是sizes还是frames
-        if(rc!=frames)
+        
+        rc=fwrite(buffer,frames,1,fp);// //将数据写入文件
+        if(rc==0)//fwrite函数出错
         {
-            printf("wrong reading");
+            printf("wrong reading of function fwrite");
             return(-1);
         }
         //这里需要判断什么时候数据读取完了吗?
     }
+    
+    //录音完后 buffer 是否需要清空？如何清空？
+    //录音完后是否需要对pcm设备进行drain
+
+    printf("playing...");
+    while(1)
+    {
+        //打开文件进行播放
+        fp = fopen(*(argv+1),"r");
+        if(fp==NULL)
+        {
+            printf("can not open a file for playing in the pcm_process");
+            return -1;
+        }
+        
+        rc=fread(buffer,frames,1,fp);//将数据写入内存
+        if(rc==0)//fread函数出错
+        {
+            printf("wrong reading of function fwrite");
+            return(-1);
+        }
+        
+        rc=snd_pcm_writei(handle,buffer,frames);//underrun如何处理和检查？
+        if (rc == -EPIPE) 
+        {
+            /* EPIPE means overrun */ //Question:这里不是underrun吗？文档里面好像没有overrun
+            fprintf(stderr, "overrun occured\n");
+            snd_pcm_prepare(handle);
+        } 
+        else if (rc < 0) 
+        {
+            fprintf(stderr, "error from read: %s\n", snd_strerror(rc));
+        } 
+        else if (rc != (int)frames) 
+        {
+            fprintf(stderr, "short read, read %d frames\n", rc);
+        }
+        
+        //这里需要判断什么时候数据读取完了吗?
+    }
+        
+    
     snd_pcm_drain(handle);
     snd_pcm_close(handle);
     free(buffer);
