@@ -115,7 +115,7 @@ int record(char *filename)
     Buf = alloca(SPEEX_SAMPLES * 2 * 2);
     while(--count > 0)
     {
-        
+
         frames = sound_read(rhandle, Buf, SPEEX_SAMPLES);
         if (frames < 0)
         {
@@ -130,7 +130,7 @@ int record(char *filename)
             printf("Busy tone detected.\n");
             break;
         }
-        printf("ret = %d\n", ret);
+        /* printf("ret = %d\n", ret); */
 
         ndata = write(fd, Buf, SPEEX_SAMPLES * 2 * 2);
         if(ndata < SPEEX_SAMPLES * 2 * 2)
